@@ -5,9 +5,8 @@ import (
 	"log"
 
 	"github.com/jroimartin/gocui"
-	"os/exec"
 	"strings"
-	)
+)
 
 type Panel struct {
 	name           string
@@ -35,15 +34,11 @@ func main() {
 
 	maxX, maxY := g.Size()
 
-	output, err := exec.Command("git", "diff", "--color").Output();
-	if err != nil {
-		log.Panicln(err)
-	}
-
+	output := diff()
 	leftBody, rightBody := separate(output)
 
-	left := &Panel{"left", leftBody, 0, 0, maxX/2, maxY -1}
-	right := &Panel{"right", rightBody, maxX/2, 0, maxX - 1, maxY -1}
+	left := &Panel{"left", leftBody, 0, 0, maxX / 2, maxY - 1}
+	right := &Panel{"right", rightBody, maxX / 2, 0, maxX - 1, maxY - 1}
 	g.SetManager(left, right)
 
 	if err := g.SetKeybinding("", gocui.KeyCtrlC, gocui.ModNone, quit); err != nil {
@@ -59,11 +54,9 @@ func quit(g *gocui.Gui, v *gocui.View) error {
 	return gocui.ErrQuit
 }
 
-
-func separate(output []byte) (string, string) {
+func separate(output string) (string, string) {
 	var addition, deletions []string
-	s := string(output)
-	arr := strings.Split(s, "\n")
+	arr := strings.Split(output, "\n")
 	for i := range arr {
 		if !strings.HasPrefix(arr[i], "[32m+") {
 			deletions = append(deletions, arr[i])
@@ -76,6 +69,6 @@ func separate(output []byte) (string, string) {
 			addition = append(addition, "")
 		}
 	}
-	return strings.Join(deletions[:],"\n"), strings.Join(addition[:],"\n")
+	return strings.Join(deletions[:], "\n"), strings.Join(addition[:], "\n")
 
 }
